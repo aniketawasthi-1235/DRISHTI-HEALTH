@@ -85,7 +85,7 @@ INDIAN_LANGUAGES = [
     "Punjabi — ਪੰਜਾਬੀ",
     "Urdu — اردو",
     "Odia — ଓଡ଼ିଆ",
-    "Nepali — नेपाली"
+    "Nepali — Nepali"
 ]
 
 
@@ -103,17 +103,22 @@ if not st.session_state.profile_created:
     )
 
     # --------------------------------------------------------
-    # LANGUAGES
+    # LANGUAGES (Checkboxes with max 2 limit)
     # --------------------------------------------------------
 
     st.markdown("### 🌐 Choose your report languages")
+    st.caption("Select up to 2 languages using the checkboxes below:")
 
-    selected_languages = st.multiselect(
-        "Select one or two languages:",
-        INDIAN_LANGUAGES,
-        default=["English — English", "Hindi — हिन्दी"],
-        max_selections=2
-    )
+    with st.expander("Select Report Languages (Max 2)", expanded=True):
+        chosen_langs = []
+        for lang in INDIAN_LANGUAGES:
+            default_checked = lang in st.session_state.selected_languages
+            is_checked = st.checkbox(lang, value=default_checked, key=f"lang_chk_{lang}")
+            if is_checked:
+                chosen_langs.append(lang)
+
+        if len(chosen_langs) > 2:
+            st.error("⚠️ Maximum 2 languages allowed. Please uncheck one to proceed.")
 
     # --------------------------------------------------------
     # HEALTH CONDITIONS
@@ -175,8 +180,11 @@ if not st.session_state.profile_created:
 
     if st.button("Create Profile", type="primary"):
 
-        if not selected_languages:
+        if not chosen_langs:
             st.warning("Please select at least one report language.")
+
+        elif len(chosen_langs) > 2:
+            st.error("Please limit your selection to a maximum of 2 languages.")
 
         elif not common_conditions and not common_allergies:
             st.warning(
@@ -207,7 +215,7 @@ if not st.session_state.profile_created:
             st.session_state.user_diseases = ", ".join(conditions)
             st.session_state.user_allergies = ", ".join(allergies)
 
-            st.session_state.selected_languages = selected_languages
+            st.session_state.selected_languages = chosen_langs
 
             st.session_state.profile_created = True
 
@@ -269,9 +277,27 @@ if st.session_state.profile_created:
         "Product C, and more without entering your information again."
     )
 
-    uploaded_file = st.camera_input(
-        f"Scan Product {st.session_state.scan_number + 1}"
-    )
+    # --------------------------------------------------------
+    # DUAL INPUT MODES (Webcam stream vs Native Camera / Gallery / Drive)
+    # --------------------------------------------------------
+
+    tab1, tab2 = st.tabs(["📁 Upload / Drive / Native Cam", "📷 Live Stream Camera"])
+
+    uploaded_file = None
+
+    with tab1:
+        uploaded_file = st.file_uploader(
+            f"Select image for Product {st.session_state.scan_number + 1}",
+            type=["jpg", "jpeg", "png", "webp"],
+            help="Tap 'Browse files' on mobile to launch your Native Camera App or upload from Gallery/Google Drive."
+        )
+
+    with tab2:
+        cam_file = st.camera_input(
+            f"Scan Product {st.session_state.scan_number + 1}"
+        )
+        if cam_file is not None:
+            uploaded_file = cam_file
 
     if uploaded_file is not None:
 
@@ -514,7 +540,7 @@ Bengali → Bengali script (বাংলা)
 Marathi → Devanagari script (मराठी)
 Tamil → Tamil script (தமிழ்)
 Telugu → Telugu script (తెలుగు)
-Gujarati → Gujarati script (ગુજરાતી)
+Gujarati → Gujarati script (Gujarati)
 Kannada → Kannada script (ಕನ್ನಡ)
 Malayalam → Malayalam script (മലയാളം)
 Punjabi → Gurmukhi script (ਪੰਜਾਬੀ)
@@ -583,8 +609,11 @@ consumer awareness.
 """
 
             try:
-                # Convert uploaded camera file into raw bytes
-                # for Google GenAI API compatibility
+                # Dynamic MIME Type Detection
+                mime_type = getattr(uploaded_file, "type", "image/jpeg")
+                if not mime_type or mime_type == "application/octet-stream":
+                    mime_type = "image/jpeg"
+
                 image_bytes = uploaded_file.getvalue()
 
                 response = client.models.generate_content(
@@ -592,7 +621,7 @@ consumer awareness.
                     contents=[
                         types.Part.from_bytes(
                             data=image_bytes,
-                            mime_type="image/jpeg"
+                            mime_type=mime_type
                         ),
                         prompt
                     ]
