@@ -1,4 +1,4 @@
-import streamlit as st
+  import streamlit as st
 from google import genai
 from google.genai import types
 from PIL import Image
@@ -85,7 +85,7 @@ INDIAN_LANGUAGES = [
     "Punjabi — ਪੰਜਾਬੀ",
     "Urdu — اردو",
     "Odia — ଓଡ଼ିଆ",
-    "Nepali — Nepali"
+    "Nepali — नेपाली"
 ]
 
 
@@ -103,22 +103,46 @@ if not st.session_state.profile_created:
     )
 
     # --------------------------------------------------------
-    # LANGUAGES (Checkboxes with max 2 limit)
+    # LANGUAGES (Checkboxes with maximum 2 selections)
     # --------------------------------------------------------
 
     st.markdown("### 🌐 Choose your report languages")
     st.caption("Select up to 2 languages using the checkboxes below:")
 
     with st.expander("Select Report Languages (Max 2)", expanded=True):
+
+        # Count currently selected languages
+        currently_selected = sum(
+            st.session_state.get(f"lang_chk_{lang}", False)
+            for lang in INDIAN_LANGUAGES
+        )
+
         chosen_langs = []
+
         for lang in INDIAN_LANGUAGES:
-            default_checked = lang in st.session_state.selected_languages
-            is_checked = st.checkbox(lang, value=default_checked, key=f"lang_chk_{lang}")
+
+            default_checked = (
+                lang in st.session_state.selected_languages
+            )
+
+            is_checked = st.checkbox(
+                lang,
+                value=default_checked,
+                key=f"lang_chk_{lang}",
+                disabled=(
+                    not default_checked
+                    and currently_selected >= 2
+                )
+            )
+
             if is_checked:
                 chosen_langs.append(lang)
 
         if len(chosen_langs) > 2:
-            st.error("⚠️ Maximum 2 languages allowed. Please uncheck one to proceed.")
+            st.error(
+                "⚠️ Maximum 2 languages allowed. "
+                "Please uncheck one to proceed."
+            )
 
     # --------------------------------------------------------
     # HEALTH CONDITIONS
@@ -181,10 +205,15 @@ if not st.session_state.profile_created:
     if st.button("Create Profile", type="primary"):
 
         if not chosen_langs:
-            st.warning("Please select at least one report language.")
+            st.warning(
+                "Please select at least one report language."
+            )
 
         elif len(chosen_langs) > 2:
-            st.error("Please limit your selection to a maximum of 2 languages.")
+            st.error(
+                "Please limit your selection to a maximum "
+                "of 2 languages."
+            )
 
         elif not common_conditions and not common_allergies:
             st.warning(
@@ -202,7 +231,9 @@ if not st.session_state.profile_created:
             ]
 
             if other_condition.strip():
-                conditions.append(other_condition.strip())
+                conditions.append(
+                    other_condition.strip()
+                )
 
             allergies = [
                 x for x in common_allergies
@@ -210,10 +241,17 @@ if not st.session_state.profile_created:
             ]
 
             if other_allergy.strip():
-                allergies.append(other_allergy.strip())
+                allergies.append(
+                    other_allergy.strip()
+                )
 
-            st.session_state.user_diseases = ", ".join(conditions)
-            st.session_state.user_allergies = ", ".join(allergies)
+            st.session_state.user_diseases = ", ".join(
+                conditions
+            )
+
+            st.session_state.user_allergies = ", ".join(
+                allergies
+            )
 
             st.session_state.selected_languages = chosen_langs
 
@@ -259,6 +297,13 @@ else:
         ]
         st.session_state.scan_number = 0
 
+        # Reset language checkbox states
+        for lang in INDIAN_LANGUAGES:
+            st.session_state.pop(
+                f"lang_chk_{lang}",
+                None
+            )
+
         st.rerun()
 
 
@@ -278,26 +323,19 @@ if st.session_state.profile_created:
     )
 
     # --------------------------------------------------------
-    # DUAL INPUT MODES (Webcam stream vs Native Camera / Gallery / Drive)
+    # IMAGE UPLOAD
     # --------------------------------------------------------
 
-    tab1, tab2 = st.tabs(["📁 Upload / Drive / Native Cam", "📷 Live Stream Camera"])
-
-    uploaded_file = None
-
-    with tab1:
-        uploaded_file = st.file_uploader(
-            f"Select image for Product {st.session_state.scan_number + 1}",
-            type=["jpg", "jpeg", "png", "webp"],
-            help="Tap 'Browse files' on mobile to launch your Native Camera App or upload from Gallery/Google Drive."
+    uploaded_file = st.file_uploader(
+        f"Upload image for Product "
+        f"{st.session_state.scan_number + 1}",
+        type=["jpg", "jpeg", "png", "webp"],
+        accept_multiple_files=False,
+        help=(
+            "Upload a clear photo of the food label "
+            "from your device, gallery, or file storage."
         )
-
-    with tab2:
-        cam_file = st.camera_input(
-            f"Scan Product {st.session_state.scan_number + 1}"
-        )
-        if cam_file is not None:
-            uploaded_file = cam_file
+    )
 
     if uploaded_file is not None:
 
@@ -305,13 +343,28 @@ if st.session_state.profile_created:
             st.error("Gemini is not configured.")
             st.stop()
 
-        image = Image.open(uploaded_file)
+        try:
 
-        st.image(
-            image,
-            caption="Captured food label",
-            use_container_width=True
-        )
+            # Read uploaded image
+            image_bytes = uploaded_file.getvalue()
+
+            # Validate that the uploaded file is actually an image
+            image = Image.open(uploaded_file)
+
+            st.image(
+                image,
+                caption="Uploaded food label",
+                use_container_width=True
+            )
+
+        except Exception:
+
+            st.error(
+                "The uploaded file could not be read as an image. "
+                "Please upload a JPG, JPEG, PNG, or WEBP image."
+            )
+
+            st.stop()
 
         with st.spinner(
             "Reading ingredients, additives and nutrition information..."
@@ -540,7 +593,7 @@ Bengali → Bengali script (বাংলা)
 Marathi → Devanagari script (मराठी)
 Tamil → Tamil script (தமிழ்)
 Telugu → Telugu script (తెలుగు)
-Gujarati → Gujarati script (Gujarati)
+Gujarati → Gujarati script (ગુજરાતી)
 Kannada → Kannada script (ಕನ್ನಡ)
 Malayalam → Malayalam script (മലയാളം)
 Punjabi → Gurmukhi script (ਪੰਜਾਬੀ)
@@ -609,12 +662,23 @@ consumer awareness.
 """
 
             try:
-                # Dynamic MIME Type Detection
-                mime_type = getattr(uploaded_file, "type", "image/jpeg")
-                if not mime_type or mime_type == "application/octet-stream":
+
+                # ------------------------------------------------
+                # DYNAMIC MIME TYPE DETECTION
+                # ------------------------------------------------
+
+                mime_type = getattr(
+                    uploaded_file,
+                    "type",
+                    None
+                )
+
+                if not mime_type:
                     mime_type = "image/jpeg"
 
-                image_bytes = uploaded_file.getvalue()
+                # ------------------------------------------------
+                # SEND IMAGE BYTES + PROMPT TO GEMINI
+                # ------------------------------------------------
 
                 response = client.models.generate_content(
                     model="gemini-2.5-flash",
@@ -644,15 +708,16 @@ consumer awareness.
                     "not replace professional medical advice."
                 )
 
-            except Exception as e:
+            except Exception:
 
                 st.error(
                     "The label could not be analyzed successfully."
                 )
 
                 st.caption(
-                    "Please try capturing the label again with better lighting "
-                    "and a clearer view of the ingredients."
+                    "Please try uploading the label again with "
+                    "better lighting, a clearer view, and readable "
+                    "ingredients and nutrition information."
                 )
 
     # ========================================================
@@ -683,4 +748,8 @@ st.markdown("---")
 st.caption(
     "Drishti Health — AI-powered food-label accessibility "
     "and consumer awareness prototype."
-)
+)  
+
+                
+
+                
