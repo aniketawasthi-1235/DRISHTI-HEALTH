@@ -270,11 +270,12 @@ if st.session_state.profile_created:
         "Product C, and more without entering your information again."
     )
 
-    # Simplified single file uploader (launches mobile camera/gallery directly)
+    # Single image uploader.
+    # The selected image is passed directly to Gemini for analysis.
     uploaded_file = st.file_uploader(
-        f"Upload or Capture Image for Product {st.session_state.scan_number + 1}",
+        f"Select Image for Product {st.session_state.scan_number + 1}",
         type=["jpg", "jpeg", "png", "webp"],
-        help="Take a photo with your device camera or pick an image from your library."
+        help="Select a clear food-label image from your device or uploaded files."
     )
 
     if uploaded_file is not None:
@@ -292,7 +293,7 @@ if st.session_state.profile_created:
         )
 
         with st.spinner(
-            "Analyzing label ingredients and profile match..."
+            "Reading ingredients, additives and nutrition information..."
         ):
 
             # ====================================================
@@ -308,22 +309,299 @@ and identify information that MAY be relevant to
 the user's stated profile.
 
 ========================================================
-CRITICAL IMAGE PROCESSING RULE
+IMAGE ANALYSIS PROCEDURE
 ========================================================
 
-YOU MUST ANALYZE THE LABEL EVERY SINGLE TIME.
+Always attempt a complete visual analysis of the
+uploaded image before producing the report.
 
-Do NOT issue general failure errors, such as complaining about lighting, 
-glare, blur, or general photo quality. NEVER ask the user to retake 
-the photo.
+The uploaded image is the primary source of
+information. Do not assume that the food label is
+located in one particular area of the image.
 
-If a specific line or word on the label is unreadable, cut off, or missing, 
-simply state precisely what line or portion is unreadable 
-(e.g., "Line 3 of the ingredient list is unreadable", or 
-"Serving size portion is cut off"). 
+First, inspect the ENTIRE uploaded image.
 
-Proceed to extract and analyze ALL OTHER visible text and ingredients 
-without stopping or failing.
+Determine where the relevant food-label information
+appears within the image.
+
+The label may occupy:
+
+- the entire image
+- only part of the image
+- the front of the package
+- the back of the package
+- the side panel
+- a nutrition panel
+- a small ingredient panel
+- several separate visible sections
+
+Do not assume that the label must be centered.
+
+Do not assume that the ingredient list is the
+largest text in the photograph.
+
+Do not analyze only the most visually prominent
+part of the package.
+
+Instead, systematically inspect all visible regions
+of the uploaded image that may contain useful
+food-label information.
+
+Follow this visual analysis sequence:
+
+STEP 1 — WHOLE IMAGE INSPECTION
+
+Inspect the complete image from edge to edge.
+
+Identify the food package and determine which
+visible portions contain label information.
+
+Look for:
+
+- product name
+- ingredient list
+- nutrition information
+- allergen declarations
+- additive codes
+- INS numbers
+- E-numbers
+- preparation instructions
+- warnings
+- storage information
+- serving information
+- claims that are directly visible on the package
+
+STEP 2 — LABEL REGION IDENTIFICATION
+
+Locate the areas of the image that contain actual
+food-label information.
+
+If the package has several visible panels, inspect
+each visible panel separately.
+
+Do not stop after finding one readable section.
+
+If the ingredient list is on one side and the
+nutrition panel is on another visible side, analyze
+both.
+
+If only one side of the package is visible, analyze
+that side completely.
+
+STEP 3 — TEXT EXTRACTION
+
+Read visible text as accurately as possible.
+
+Pay particular attention to:
+
+- ingredient names
+- chemical names
+- additive names
+- INS numbers
+- E-numbers
+- allergen declarations
+- nutrition values
+- units
+- serving sizes
+- warning statements
+
+Preserve additive codes exactly when they are
+clearly visible.
+
+Do not silently correct or replace uncertain text.
+
+If two possible readings exist, identify the
+uncertainty rather than selecting an invented value.
+
+STEP 4 — INGREDIENT LIST ANALYSIS
+
+Locate the ingredient list wherever it appears.
+
+Read the list from beginning to end when possible.
+
+Do not analyze only the first few ingredients.
+
+If the complete list is visible, attempt to extract
+the complete list.
+
+If only part of the list is visible, analyze the
+visible portion and clearly identify what is missing.
+
+STEP 5 — ADDITIVE IDENTIFICATION
+
+Search the visible label for additive identifiers
+such as:
+
+- INS numbers
+- E-numbers
+- additive codes
+- preservative codes
+- colour codes
+- emulsifiers
+- stabilizers
+- acidity regulators
+- antioxidants
+- flavour enhancers
+- sweeteners
+- thickeners
+
+Only identify an additive when the visible evidence
+supports the identification.
+
+STEP 6 — NUTRITION PANEL INSPECTION
+
+If a nutrition panel is visible, inspect it
+independently from the ingredient list.
+
+Look for:
+
+- energy
+- calories
+- carbohydrates
+- total sugars
+- added sugars if declared
+- protein
+- total fat
+- saturated fat
+- trans fat if declared
+- sodium
+- salt
+- dietary fibre
+- serving size
+
+Do not invent nutrition values that are not visible.
+
+STEP 7 — ALLERGEN INSPECTION
+
+Look specifically for declared allergen information.
+
+This may appear:
+
+- within the ingredient list
+- below the ingredient list
+- in a "Contains" statement
+- in a "May contain" statement
+- in a separate warning
+- elsewhere on the visible package
+
+Do not treat a "may contain" statement as identical
+to an ingredient declaration.
+
+Report what is actually visible.
+
+STEP 8 — CROSS-REGION COMPARISON
+
+Before finishing the visual analysis, check whether
+another visible region of the same image contains
+additional information.
+
+Do not stop simply because one section has already
+been successfully read.
+
+The objective is to obtain the most complete
+analysis reasonably possible from the uploaded image.
+
+STEP 9 — HANDLE PARTIALLY READABLE INFORMATION
+
+If a specific word, number, ingredient, or section
+cannot be reliably read:
+
+- do not invent it
+- do not guess it solely from context
+- do not replace it with a common ingredient
+- do not declare the entire image unreadable
+
+Instead, continue analyzing everything else that
+can be read.
+
+For example:
+
+"Ingredient list is visible, but the final two
+ingredients are partially obscured."
+
+or:
+
+"Nutrition panel is visible, but the sodium value
+cannot be read reliably."
+
+or:
+
+"An additive code is visible, but the final digit
+cannot be established confidently."
+
+STEP 10 — PARTIAL LABEL ANALYSIS
+
+Even if only part of the label is visible, perform
+a partial analysis.
+
+Never treat a partially visible label as a reason
+to abandon the analysis.
+
+Use the information that is actually visible.
+
+Clearly distinguish:
+
+VISIBLE INFORMATION
+
+from
+
+UNREADABLE OR MISSING INFORMATION
+
+STEP 11 — VISUAL UNCERTAINTY
+
+If the image contains glare, shadows, reflections,
+small text, folds, perspective distortion, cropping,
+or other visual limitations, do not automatically
+fail the analysis.
+
+Instead:
+
+1. Extract whatever information remains readable.
+2. Identify the specific affected section.
+3. Continue with all other visible information.
+4. Clearly communicate uncertainty in the final
+   report.
+
+Do NOT produce a generic failure response merely
+because some part of the image is difficult to read.
+
+STEP 12 — NO INVENTION
+
+Visual analysis must remain evidence-based.
+
+Never invent:
+
+- ingredients
+- additive numbers
+- E-numbers
+- INS numbers
+- nutrition values
+- allergens
+- chemical names
+- product names
+- serving sizes
+- warnings
+- health effects
+
+If something cannot be established from the image,
+say that it could not be reliably established.
+
+STEP 13 — COMPLETE ANALYSIS BEFORE REPORTING
+
+Before generating the final report, internally
+check whether you have inspected:
+
+1. The complete visible package
+2. The ingredient list
+3. Additive codes
+4. Allergen declarations
+5. Nutrition information
+6. Relevant warnings
+7. Other visible label information
+
+Only after this visual inspection should you
+compare the extracted information with the user's
+profile.
 
 ========================================================
 USER PROFILE
@@ -343,15 +621,28 @@ IMPORTANT SAFETY RULES
 ========================================================
 
 You are NOT a doctor.
+
 You are NOT a diagnostic system.
+
 Do NOT provide a medical diagnosis.
-Do NOT declare that a product is medically "safe", "unsafe", "approved", or "cleared".
-Do NOT tell the user that they definitely can or cannot consume the product.
-Do NOT assume that an ingredient is universally "bad".
 
-Instead, identify information that MAY be relevant to the user's stated profile.
+Do NOT declare that a product is medically
+"safe", "unsafe", "approved", or "cleared".
 
-Never invent an ingredient, chemical, nutrition value, additive number, or health effect.
+Do NOT tell the user that they definitely can
+or cannot consume the product.
+
+Do NOT assume that an ingredient is universally
+"bad".
+
+Instead, identify information that MAY be relevant
+to the user's stated profile.
+
+If information cannot be reliably read from the
+photograph, explicitly say so.
+
+Never invent an ingredient, chemical, nutrition
+value, additive number, or health effect.
 
 ========================================================
 ADVANCED INGREDIENT & ADDITIVE IDENTIFICATION
@@ -364,18 +655,92 @@ emulsifiers, stabilizers, acidity regulators,
 antioxidants, flavour enhancers, sweeteners,
 thickeners and other technical terms.
 
-If an additive code such as an INS number or E-number is visible:
+For example, a label might contain something such as:
+
+INS 163
+INS 330
+INS 621
+INS 211
+INS 322
+INS 415
+
+If an additive code such as an INS number or
+E-number is visible:
 
 1. Identify the code exactly as written.
-2. Determine the commonly recognized name of the additive if you can do so reliably.
-3. Identify its general technological function (colour, preservative, emulsifier, etc.).
-4. Explain what the additive is generally used for in food.
-5. Explain whether it may be relevant to the user's stated allergies or conditions.
-6. Clearly distinguish established information from uncertainty.
-7. NEVER invent a chemical structure merely because the code looks familiar.
-8. Do not assign arbitrary risk scores.
-9. Explain that relevance depends on individual sensitivity and context.
-10. If an INS/E-number code is unreadable, state the specific line/code that was unclear.
+
+2. Determine the commonly recognized name of the
+   additive if you can do so reliably.
+
+3. Identify its general technological function,
+   such as:
+   - colour
+   - preservative
+   - acidity regulator
+   - antioxidant
+   - emulsifier
+   - stabilizer
+   - thickener
+   - flavour enhancer
+   - sweetener
+
+4. Explain what the additive is generally used for
+   in food.
+
+5. If relevant information is known, explain whether
+   it may be relevant to the user's stated allergies,
+   intolerances, dietary restrictions, or conditions.
+
+6. Clearly distinguish established information
+   from uncertainty.
+
+7. NEVER invent a chemical structure or chemical
+   composition merely because the code looks familiar.
+
+8. Do not assign an arbitrary numerical "risk score"
+   such as 7/10 unless a verified scientific or
+   regulatory basis is actually available.
+
+9. Risk should NOT be treated as universal.
+   Explain that relevance may depend on the individual,
+   amount consumed, sensitivity, dietary context,
+   and other factors.
+
+10. If you cannot confidently identify an INS/E-number,
+    report:
+
+    "Additive code detected, but reliable identification
+    could not be established from the available
+    information."
+
+========================================================
+CHEMICAL / COMPOUND UNDERSTANDING
+========================================================
+
+When a recognizable additive or compound is detected,
+attempt to provide:
+
+- Label name
+- INS/E-number, if present
+- Common name
+- General chemical/additive category
+- Technological function
+- Why it is used in food
+- Whether it appears relevant to the user's profile
+- Confidence level
+
+Do NOT turn this into a medical diagnosis.
+
+If the label contains an ingredient with a complex
+technical name, explain it in simple consumer language.
+
+For example:
+
+Technical term
+→ What it generally is
+→ Why it is used
+→ Whether it appears relevant to this particular
+  user's profile
 
 ========================================================
 LABEL EXTRACTION
@@ -405,25 +770,43 @@ Do NOT invent information that is not visible.
 PROFILE COMPARISON
 ========================================================
 
-Compare detected information ONLY with the user's self-entered profile.
+Compare detected information ONLY with the user's
+self-entered profile.
 
 For every possible match, explain:
+
 1. What was detected?
 2. Why might it be relevant?
-3. How confident are you? (High, Medium, Low)
+3. How confident are you?
+
+Use:
+
+High
+Medium
+Low
+
+confidence.
 
 If there is no clear match, state:
-"No clear profile-relevant match was detected from the visible label."
+
+"No clear profile-relevant match was detected from
+the visible label."
 
 ========================================================
 OUTPUT FORMAT
 ========================================================
 
-Produce the report in EVERY language selected by the user:
+Produce the report in EVERY language selected by
+the user:
+
 {", ".join(st.session_state.selected_languages)}
 
 LANGUAGE SCRIPT REQUIREMENT:
-When generating a report in a selected language, use that language's native writing system/script.
+
+When generating a report in a selected language,
+use that language's native writing system/script.
+
+Use the following scripts:
 
 English → English / Latin script
 Hindi → Devanagari script (हिन्दी)
@@ -439,43 +822,131 @@ Urdu → Urdu script (اردو)
 Odia → Odia script (ଓଡ଼ିଆ)
 Nepali → Devanagari script (नेपाली)
 
-Do NOT produce Hinglish or Romanized scripts.
+Do NOT transliterate the selected language into
+English/Roman characters unless the user explicitly
+requests Romanized text.
+
+Do NOT produce Hinglish, Tanglish, or other
+Romanized forms when the native-script language
+has been selected.
+
+Every language must contain the SAME underlying
+information.
+
+Do not add medical claims in one language that are
+absent from another.
 
 For each language use this structure:
 
 ### 🔍 DETECTED LABEL INFORMATION
-(Note any specific unreadable lines here if applicable, e.g., "Line 2 of ingredients is partially obscured")
+
+Include:
+
+- Product name, if visible
+- Ingredient information, if visible
+- Any specific unreadable or missing sections
+- Important label observations
+
+If a specific section cannot be read, identify
+that section precisely rather than declaring the
+whole image unreadable.
 
 ### 🧪 ADDITIVES / COMPLEX INGREDIENTS
 
+For each identified additive:
+
+- Label code/name
+- Common name
+- Function
+- Relevance
+- Confidence
+
 ### ⚠️ PROFILE-RELEVANT FLAGS
+
+Identify only information that appears relevant
+to the user's self-entered profile.
+
+For each flag explain:
+
+- What was detected
+- Why it may be relevant
+- Confidence level
 
 ### 🧾 NUTRITION SUMMARY
 
+Summarize visible nutrition information.
+
+Do not invent missing values.
+
 ### 💡 SIMPLE EXPLANATION
 
+Explain the main findings in simple consumer-friendly
+language.
+
 ### ❗ IMPORTANT LIMITATION
+
+Explain that the analysis is based only on the
+visible label and the user's self-entered profile.
+
+It is an educational consumer-awareness screening
+tool and does not replace professional medical advice.
 
 ========================================================
 FINAL REQUIREMENT
 ========================================================
 
 Be precise.
+
+Always attempt a complete visual analysis of the
+uploaded image.
+
+Do not stop the analysis simply because one portion
+of the image is unclear.
+
 Do not manufacture missing information.
-Do not provide a universal "healthy/unhealthy" judgment.
-Focus on personalized label understanding and consumer awareness.
+
+Do not confuse an additive's technological function
+with its medical effect.
+
+Do not provide a universal "healthy/unhealthy"
+judgment.
+
+Do not assume that the largest or most prominent
+text is the only relevant information.
+
+Inspect the complete visible label before producing
+the final report.
+
+Focus on personalized label understanding and
+consumer awareness.
+
+When information is uncertain, communicate the
+specific uncertainty rather than failing the entire
+analysis.
+
+When information is readable, use it.
+
+When information is partially readable, analyze the
+readable portion.
+
+When information is not visible, explicitly state
+that it is not available from the uploaded image.
 """
 
             try:
-                # Dynamic MIME Type Detection
-                mime_type = getattr(uploaded_file, "type", "image/jpeg")
+                mime_type = getattr(
+                    uploaded_file,
+                    "type",
+                    "image/jpeg"
+                )
+
                 if not mime_type or mime_type == "application/octet-stream":
                     mime_type = "image/jpeg"
 
                 image_bytes = uploaded_file.getvalue()
 
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-3.6-flash",
                     contents=[
                         types.Part.from_bytes(
                             data=image_bytes,
@@ -536,4 +1007,4 @@ st.markdown("---")
 st.caption(
     "Drishti Health — AI-powered food-label accessibility "
     "and consumer awareness prototype."
-)
+    )
