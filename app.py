@@ -103,22 +103,18 @@ if not st.session_state.profile_created:
     )
 
     # --------------------------------------------------------
-    # LANGUAGES (Checkboxes with max 2 limit)
+    # LANGUAGES (Strict 2 Max Limit via multiselect)
     # --------------------------------------------------------
 
     st.markdown("### 🌐 Choose your report languages")
-    st.caption("Select up to 2 languages using the checkboxes below:")
+    st.caption("Select up to 2 languages:")
 
-    with st.expander("Select Report Languages (Max 2)", expanded=True):
-        chosen_langs = []
-        for lang in INDIAN_LANGUAGES:
-            default_checked = lang in st.session_state.selected_languages
-            is_checked = st.checkbox(lang, value=default_checked, key=f"lang_chk_{lang}")
-            if is_checked:
-                chosen_langs.append(lang)
-
-        if len(chosen_langs) > 2:
-            st.error("⚠️ Maximum 2 languages allowed. Please uncheck one to proceed.")
+    chosen_langs = st.multiselect(
+        "Select Report Languages (Maximum 2)",
+        options=INDIAN_LANGUAGES,
+        default=st.session_state.selected_languages,
+        max_selections=2
+    )
 
     # --------------------------------------------------------
     # HEALTH CONDITIONS
@@ -182,9 +178,6 @@ if not st.session_state.profile_created:
 
         if not chosen_langs:
             st.warning("Please select at least one report language.")
-
-        elif len(chosen_langs) > 2:
-            st.error("Please limit your selection to a maximum of 2 languages.")
 
         elif not common_conditions and not common_allergies:
             st.warning(
@@ -277,24 +270,12 @@ if st.session_state.profile_created:
         "Product C, and more without entering your information again."
     )
 
-    # Dual input selection for mobile and desktop support
-    tab1, tab2 = st.tabs(["📁 Native Camera / Gallery / Drive", "📷 Web Live Camera"])
-
-    uploaded_file = None
-
-    with tab1:
-        uploaded_file = st.file_uploader(
-            f"Select image for Product {st.session_state.scan_number + 1}",
-            type=["jpg", "jpeg", "png", "webp"],
-            help="Tap to capture using full camera focus or choose an image from device."
-        )
-
-    with tab2:
-        cam_file = st.camera_input(
-            f"Scan Product {st.session_state.scan_number + 1}"
-        )
-        if cam_file is not None:
-            uploaded_file = cam_file
+    # Simplified single file uploader (launches mobile camera/gallery directly)
+    uploaded_file = st.file_uploader(
+        f"Upload or Capture Image for Product {st.session_state.scan_number + 1}",
+        type=["jpg", "jpeg", "png", "webp"],
+        help="Take a photo with your device camera or pick an image from your library."
+    )
 
     if uploaded_file is not None:
 
@@ -311,7 +292,7 @@ if st.session_state.profile_created:
         )
 
         with st.spinner(
-            "Reading ingredients, additives and nutrition information..."
+            "Analyzing label ingredients and profile match..."
         ):
 
             # ====================================================
@@ -325,6 +306,24 @@ analysis and consumer-awareness assistant.
 Your task is to analyze the visible food packaging
 and identify information that MAY be relevant to
 the user's stated profile.
+
+========================================================
+CRITICAL IMAGE PROCESSING RULE
+========================================================
+
+YOU MUST ANALYZE THE LABEL EVERY SINGLE TIME.
+
+Do NOT issue general failure errors, such as complaining about lighting, 
+glare, blur, or general photo quality. NEVER ask the user to retake 
+the photo.
+
+If a specific line or word on the label is unreadable, cut off, or missing, 
+simply state precisely what line or portion is unreadable 
+(e.g., "Line 3 of the ingredient list is unreadable", or 
+"Serving size portion is cut off"). 
+
+Proceed to extract and analyze ALL OTHER visible text and ingredients 
+without stopping or failing.
 
 ========================================================
 USER PROFILE
@@ -344,28 +343,15 @@ IMPORTANT SAFETY RULES
 ========================================================
 
 You are NOT a doctor.
-
 You are NOT a diagnostic system.
-
 Do NOT provide a medical diagnosis.
+Do NOT declare that a product is medically "safe", "unsafe", "approved", or "cleared".
+Do NOT tell the user that they definitely can or cannot consume the product.
+Do NOT assume that an ingredient is universally "bad".
 
-Do NOT declare that a product is medically
-"safe", "unsafe", "approved", or "cleared".
+Instead, identify information that MAY be relevant to the user's stated profile.
 
-Do NOT tell the user that they definitely can
-or cannot consume the product.
-
-Do NOT assume that an ingredient is universally
-"bad".
-
-Instead, identify information that MAY be relevant
-to the user's stated profile.
-
-If information cannot be reliably read from the
-photograph, explicitly say so.
-
-Never invent an ingredient, chemical, nutrition
-value, additive number, or health effect.
+Never invent an ingredient, chemical, nutrition value, additive number, or health effect.
 
 ========================================================
 ADVANCED INGREDIENT & ADDITIVE IDENTIFICATION
@@ -378,92 +364,18 @@ emulsifiers, stabilizers, acidity regulators,
 antioxidants, flavour enhancers, sweeteners,
 thickeners and other technical terms.
 
-For example, a label might contain something such as:
-
-INS 163
-INS 330
-INS 621
-INS 211
-INS 322
-INS 415
-
-If an additive code such as an INS number or
-E-number is visible:
+If an additive code such as an INS number or E-number is visible:
 
 1. Identify the code exactly as written.
-
-2. Determine the commonly recognized name of the
-   additive if you can do so reliably.
-
-3. Identify its general technological function,
-   such as:
-   - colour
-   - preservative
-   - acidity regulator
-   - antioxidant
-   - emulsifier
-   - stabilizer
-   - thickener
-   - flavour enhancer
-   - sweetener
-
-4. Explain what the additive is generally used for
-   in food.
-
-5. If relevant information is known, explain whether
-   it may be relevant to the user's stated allergies,
-   intolerances, dietary restrictions, or conditions.
-
-6. Clearly distinguish established information
-   from uncertainty.
-
-7. NEVER invent a chemical structure or chemical
-   composition merely because the code looks familiar.
-
-8. Do not assign an arbitrary numerical "risk score"
-   such as 7/10 unless a verified scientific or
-   regulatory basis is actually available.
-
-9. Risk should NOT be treated as universal.
-   Explain that relevance may depend on the individual,
-   amount consumed, sensitivity, dietary context,
-   and other factors.
-
-10. If you cannot confidently identify an INS/E-number,
-    report:
-
-    "Additive code detected, but reliable identification
-    could not be established from the available
-    information."
-
-========================================================
-CHEMICAL / COMPOUND UNDERSTANDING
-========================================================
-
-When a recognizable additive or compound is detected,
-attempt to provide:
-
-- Label name
-- INS/E-number, if present
-- Common name
-- General chemical/additive category
-- Technological function
-- Why it is used in food
-- Whether it appears relevant to the user's profile
-- Confidence level
-
-Do NOT turn this into a medical diagnosis.
-
-If the label contains an ingredient with a complex
-technical name, explain it in simple consumer language.
-
-For example:
-
-Technical term
-→ What it generally is
-→ Why it is used
-→ Whether it appears relevant to this particular
-  user's profile
+2. Determine the commonly recognized name of the additive if you can do so reliably.
+3. Identify its general technological function (colour, preservative, emulsifier, etc.).
+4. Explain what the additive is generally used for in food.
+5. Explain whether it may be relevant to the user's stated allergies or conditions.
+6. Clearly distinguish established information from uncertainty.
+7. NEVER invent a chemical structure merely because the code looks familiar.
+8. Do not assign arbitrary risk scores.
+9. Explain that relevance depends on individual sensitivity and context.
+10. If an INS/E-number code is unreadable, state the specific line/code that was unclear.
 
 ========================================================
 LABEL EXTRACTION
@@ -493,43 +405,25 @@ Do NOT invent information that is not visible.
 PROFILE COMPARISON
 ========================================================
 
-Compare detected information ONLY with the user's
-self-entered profile.
+Compare detected information ONLY with the user's self-entered profile.
 
 For every possible match, explain:
-
 1. What was detected?
 2. Why might it be relevant?
-3. How confident are you?
-
-Use:
-
-High
-Medium
-Low
-
-confidence.
+3. How confident are you? (High, Medium, Low)
 
 If there is no clear match, state:
-
-"No clear profile-relevant match was detected from
-the visible label."
+"No clear profile-relevant match was detected from the visible label."
 
 ========================================================
 OUTPUT FORMAT
 ========================================================
 
-Produce the report in EVERY language selected by
-the user:
-
+Produce the report in EVERY language selected by the user:
 {", ".join(st.session_state.selected_languages)}
 
 LANGUAGE SCRIPT REQUIREMENT:
-
-When generating a report in a selected language,
-use that language's native writing system/script.
-
-Use the following scripts:
+When generating a report in a selected language, use that language's native writing system/script.
 
 English → English / Latin script
 Hindi → Devanagari script (हिन्दी)
@@ -545,33 +439,14 @@ Urdu → Urdu script (اردو)
 Odia → Odia script (ଓଡ଼ିଆ)
 Nepali → Devanagari script (नेपाली)
 
-Do NOT transliterate the selected language into
-English/Roman characters unless the user explicitly
-requests Romanized text.
-
-Do NOT produce Hinglish, Tanglish, or other
-Romanized forms when the native-script language
-has been selected.
-
-Every language must contain the SAME underlying
-information.
-
-Do not add medical claims in one language that are
-absent from another.
+Do NOT produce Hinglish or Romanized scripts.
 
 For each language use this structure:
 
 ### 🔍 DETECTED LABEL INFORMATION
+(Note any specific unreadable lines here if applicable, e.g., "Line 2 of ingredients is partially obscured")
 
 ### 🧪 ADDITIVES / COMPLEX INGREDIENTS
-
-For each identified additive:
-
-- Label code/name
-- Common name
-- Function
-- Relevance
-- Confidence
 
 ### ⚠️ PROFILE-RELEVANT FLAGS
 
@@ -581,28 +456,14 @@ For each identified additive:
 
 ### ❗ IMPORTANT LIMITATION
 
-Explain that the analysis is based only on the
-visible label and the user's self-entered profile.
-
-It is an educational consumer-awareness screening
-tool and does not replace professional medical advice.
-
 ========================================================
 FINAL REQUIREMENT
 ========================================================
 
 Be precise.
-
 Do not manufacture missing information.
-
-Do not confuse an additive's technological function
-with its medical effect.
-
-Do not provide a universal "healthy/unhealthy"
-judgment.
-
-Focus on personalized label understanding and
-consumer awareness.
+Do not provide a universal "healthy/unhealthy" judgment.
+Focus on personalized label understanding and consumer awareness.
 """
 
             try:
@@ -644,12 +505,7 @@ consumer awareness.
             except Exception as e:
 
                 st.error(
-                    "The label could not be analyzed successfully."
-                )
-
-                st.caption(
-                    "Please try capturing the label again with better lighting "
-                    "and a clearer view of the ingredients."
+                    f"An error occurred while connecting to the AI model: {str(e)}"
                 )
 
     # ========================================================
@@ -680,4 +536,4 @@ st.markdown("---")
 st.caption(
     "Drishti Health — AI-powered food-label accessibility "
     "and consumer awareness prototype."
-) 
+)
