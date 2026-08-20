@@ -270,11 +270,11 @@ if st.session_state.profile_created:
         "Product C, and more without entering your information again."
     )
 
-    # Single image uploader.
-    # The selected image is passed directly to Gemini for analysis.
+    # Dynamic uploader key ensures fresh file uploads on subsequent product scans
     uploaded_file = st.file_uploader(
         f"Select Image for Product {st.session_state.scan_number + 1}",
         type=["jpg", "jpeg", "png", "webp"],
+        key=f"uploader_product_{st.session_state.scan_number}",
         help="Select a clear food-label image from your device or uploaded files."
     )
 
@@ -973,29 +973,30 @@ that it is not available from the uploaded image.
                     "not replace professional medical advice."
                 )
 
+                # ========================================================
+                # CONTINUOUS SCANNING (DIRECTLY BELOW RESULT)
+                # ========================================================
+
+                st.markdown("---")
+
+                st.markdown(
+                    f"### 🔄 Ready for Product "
+                    f"{st.session_state.scan_number + 1}"
+                )
+
+                st.write(
+                    "Your profile is still active. Upload or capture the next "
+                    "product label below to get an instant report without re-entering your details."
+                )
+
+                if st.button("📸 Scan Next Product", type="primary"):
+                    st.rerun()
+
             except Exception as e:
 
                 st.error(
                     f"An error occurred while connecting to the AI model: {str(e)}"
                 )
-
-    # ========================================================
-    # CONTINUOUS SCANNING
-    # ========================================================
-
-    if st.session_state.scan_number > 0:
-
-        st.markdown("---")
-
-        st.markdown(
-            f"### 🔄 Ready for Product "
-            f"{st.session_state.scan_number + 1}"
-        )
-
-        st.write(
-            "Your profile is still active. "
-            "You do not need to enter it again."
-        )
 
 
 # ============================================================
@@ -1007,4 +1008,4 @@ st.markdown("---")
 st.caption(
     "Drishti Health — AI-powered food-label accessibility "
     "and consumer awareness prototype."
-    )
+)
